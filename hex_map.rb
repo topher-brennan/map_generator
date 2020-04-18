@@ -7,9 +7,12 @@ class HexMap
 
   attr_accessor :hexes
 
+  SVG_HEADER = "<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.1//EN' 'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg version='1.1' xmlns='http://www.w3.org/2000/svg'>\n"
+  SVG_FOOTER = "</svg>"
+
   # A hex map drawn as above will need about 15% more hexes across than it has
   # up and down to represent a square area.
-  def initialize(height=320, width=370)
+  def initialize(height=29, width=33)
     @height = height
     @width = width
     @hexes = Array.new(height) { Array.new(width) }
@@ -58,6 +61,27 @@ class HexMap
     end
     result
   end
+
+  def to_svg
+    result = SVG_HEADER
+
+    @width.times do |w|
+      @height.times do |h|
+	h1 = 24 * h + (w % 2 == 0 ? 12 : 0)
+	h2 = h1 + 12
+	h3 = h2 + 12
+	w1 = 21 * w
+	w2 = w1 + 7
+	w3 = w2 + 14
+	w4 = w3 + 7
+
+	result << "  <polygon points='#{w2},#{h1} #{w3},#{h1} #{w4},#{h2} #{w3},#{h3} #{w2},#{h3} #{w1},#{h2}' fill='#{@hexes[h][w].class::COLOR}' stroke='black' stroke-width='1'/>\n"
+      end
+    end
+
+    result += SVG_FOOTER
+    result
+  end
 end
 
 class Hex
@@ -73,6 +97,8 @@ class Hex
 end
 
 class Plain < Hex
+  COLOR = 'greenyellow'
+
   def generate_adjacent
     case rand(20)
     when 0...11
@@ -98,6 +124,8 @@ class Plain < Hex
 end
 
 class Scrub < Hex
+  COLOR = 'yellowgreen'
+
   def generate_adjacent
     case rand(20)
     when 0...3
@@ -123,6 +151,8 @@ class Scrub < Hex
 end
 
 class Forest < Hex
+  COLOR = 'forestgreen'
+
   def generate_adjacent
     case rand(20)
     when 0
@@ -148,6 +178,8 @@ class Forest < Hex
 end
 
 class Rough < Hex
+  COLOR = 'orange'
+
   def generate_adjacent
     # I switch my convention here to more closely match the table in the DMG.
     # TODO: Re-do other classes to match.
@@ -177,6 +209,8 @@ class Rough < Hex
 end
 
 class Desert < Hex
+  COLOR = 'lightyellow'
+
   def generate_adjacent
     case rand(20)
     when 0
@@ -202,6 +236,8 @@ class Desert < Hex
 end
 
 class Hills < Hex
+  COLOR = 'sandybrown'
+
   def generate_adjacent
     case rand(20)
     when 0
@@ -229,6 +265,8 @@ class Hills < Hex
 end
 
 class Mountains < Hex
+  COLOR = 'brown'
+
   def generate_adjacent
     case rand(20)
     when 0
@@ -254,6 +292,8 @@ class Mountains < Hex
 end
 
 class Marsh < Hex
+  COLOR = 'aquamarine'
+
   def generate_adjacent
     case rand(20)
     when 0
@@ -287,8 +327,17 @@ class Inheritor < Hex
 end
 
 class Pond < Inheritor
+  COLOR = 'aqua'
 end
 
 class Depression < Inheritor
+  COLOR = 'black'
 end
 
+if $PROGRAM_NAME == __FILE__
+  hex_map = HexMap.new
+  
+  open('output.svg', 'w') do |f|
+    f.puts hex_map.to_svg
+  end
+end  
